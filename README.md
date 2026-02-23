@@ -1,73 +1,100 @@
-# Welcome to your Lovable project
+# 🔎 DeepScan AI  
+### Advanced AI-Powered Content Authenticity & Misinformation Detection System
 
-## Project info
+DeepScan AI is a modern forensic-style AI verification platform designed to analyze digital content and evaluate its authenticity risk using advanced language models.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+It performs structured credibility analysis on:
 
-## How can I edit this code?
+- 📝 Text content (articles, claims, statements)
+- 🖼 Images (context-based authenticity reasoning)
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## 🚀 Live Demo
+🌐 https://deepscan-ai.vercel.app
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🧠 How It Works
 
-**Use your preferred IDE**
+DeepScan AI uses advanced LLM-based forensic reasoning to evaluate:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Logical consistency
+- Emotional manipulation signals
+- Sensational language detection
+- Unsupported or fabricated claims
+- Bias and misinformation indicators
+- Structural coherence
+- Source credibility patterns
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+The system returns:
 
-Follow these steps:
+- Authenticity Score (0–100)
+- Risk Level (Low / Medium / High)
+- Detailed Breakdown Metrics
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+All results are structured in strict JSON format and visualized in an intuitive dashboard.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+---
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🛠 Tech Stack
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
+Frontend:
+- React + Vite
 - TypeScript
-- React
-- shadcn-ui
 - Tailwind CSS
+- ShadCN UI
 
-## How can I deploy this project?
+Backend:
+- Vercel Serverless Functions
+- OpenRouter AI API
+- LLaMA 3 Model
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Deployment:
+- Vercel
+- GitHub
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## 📊 Scoring Logic
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+| Score Range | Interpretation |
+|------------|---------------|
+| 80–100 | Highly Credible |
+| 50–79 | Potential Risk |
+| Below 50 | High Misinformation Risk |
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+
+## 🔐 Security
+
+- API keys are securely stored in Vercel environment variables
+- No sensitive credentials are committed to the repository
+- Server-side AI requests only
+
+---
+
+## ⚠ Current Scope
+
+- ✅ Text Analysis (Fully Active)
+- ✅ Image Context Analysis
+- 🚧 Video & Audio (Coming Soon)
+
+---
+
+## 📌 Vision
+
+DeepScan AI aims to become a structured credibility verification layer for digital media — helping users evaluate authenticity before trusting content.
+
+---
+
+## 👨‍💻 Author
+
+Pranav Kadam  
+AI Developer & System Architect
+
+---
+
+## ⭐ If You Like This Project
+
+Give it a star and support independent AI innovation.
