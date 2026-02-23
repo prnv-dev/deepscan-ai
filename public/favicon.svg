@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e56a0"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <!-- Shield -->
+  <path d="M32 4 L56 16 V34 C56 48 44 58 32 62 C20 58 8 48 8 34 V16 Z" fill="url(#g)" stroke="url(#g2)" stroke-width="2"/>
+  <!-- AI scan lines -->
+  <line x1="18" y1="28" x2="46" y2="28" stroke="#60a5fa" stroke-width="1.5" opacity="0.4"/>
+  <line x1="20" y1="34" x2="44" y2="34" stroke="#60a5fa" stroke-width="1.5" opacity="0.3"/>
+  <line x1="22" y1="40" x2="42" y2="40" stroke="#60a5fa" stroke-width="1.5" opacity="0.2"/>
+  <!-- Eye symbol -->
+  <ellipse cx="32" cy="30" rx="11" ry="7" fill="none" stroke="#e0f2fe" stroke-width="2"/>
+  <circle cx="32" cy="30" r="4" fill="#e0f2fe"/>
+  <circle cx="32" cy="30" r="1.8" fill="#1e56a0"/>
+  <!-- Checkmark -->
+  <path d="M24 46 L30 52 L42 40" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

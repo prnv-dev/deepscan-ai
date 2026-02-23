@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1628"/>
+      <stop offset="100%" stop-color="#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e56a0"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.05" stroke="#60a5fa" stroke-width="0.5">
+    <line x1="0" y1="100" x2="1200" y2="100"/><line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/><line x1="0" y1="400" x2="1200" y2="400"/>
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="200" y1="0" x2="200" y2="630"/><line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/><line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+
+  <!-- Decorative scan lines -->
+  <line x1="50" y1="180" x2="350" y2="180" stroke="#60a5fa" stroke-width="1" opacity="0.15"/>
+  <line x1="80" y1="450" x2="300" y2="450" stroke="#60a5fa" stroke-width="1" opacity="0.1"/>
+  <line x1="900" y1="150" x2="1150" y2="150" stroke="#60a5fa" stroke-width="1" opacity="0.12"/>
+  <line x1="850" y1="480" x2="1100" y2="480" stroke="#60a5fa" stroke-width="1" opacity="0.08"/>
+
+  <!-- Shield icon (scaled up from favicon) -->
+  <g transform="translate(160, 165) scale(4.5)">
+    <path d="M32 4 L56 16 V34 C56 48 44 58 32 62 C20 58 8 48 8 34 V16 Z" fill="url(#shield)" stroke="url(#glow)" stroke-width="2"/>
+    <line x1="18" y1="28" x2="46" y2="28" stroke="#60a5fa" stroke-width="1.5" opacity="0.4"/>
+    <line x1="20" y1="34" x2="44" y2="34" stroke="#60a5fa" stroke-width="1.5" opacity="0.3"/>
+    <line x1="22" y1="40" x2="42" y2="40" stroke="#60a5fa" stroke-width="1.5" opacity="0.2"/>
+    <ellipse cx="32" cy="30" rx="11" ry="7" fill="none" stroke="#e0f2fe" stroke-width="2"/>
+    <circle cx="32" cy="30" r="4" fill="#e0f2fe"/>
+    <circle cx="32" cy="30" r="1.8" fill="#1e56a0"/>
+    <path d="M24 46 L30 52 L42 40" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- VerifyAI text -->
+  <text x="580" y="280" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" font-size="80" font-weight="800" fill="#ffffff" letter-spacing="-1">VerifyAI</text>
+
+  <!-- Tagline -->
+  <text x="580" y="340" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" font-size="28" font-weight="400" fill="#93c5fd">AI-Powered Content Verification</text>
+
+  <!-- Subtitle -->
+  <text x="580" y="390" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" font-size="20" font-weight="300" fill="#64748b">Detect Fake News · Identify Deepfakes · Verify Authenticity</text>
+
+  <!-- Bottom accent line -->
+  <rect x="580" y="420" width="120" height="3" rx="1.5" fill="url(#glow)"/>
+
+  <!-- Corner accents -->
+  <path d="M30 30 L30 60 M30 30 L60 30" stroke="#3b82f6" stroke-width="2" opacity="0.3"/>
+  <path d="M1170 30 L1170 60 M1170 30 L1140 30" stroke="#3b82f6" stroke-width="2" opacity="0.3"/>
+  <path d="M30 600 L30 570 M30 600 L60 600" stroke="#3b82f6" stroke-width="2" opacity="0.3"/>
+  <path d="M1170 600 L1170 570 M1170 600 L1140 600" stroke="#3b82f6" stroke-width="2" opacity="0.3"/>
+</svg>
