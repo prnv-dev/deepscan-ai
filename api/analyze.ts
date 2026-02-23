@@ -1,45 +1,50 @@
-export default async function handler(req: any, res: any) {
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { type, content } = req.body;
+    const { type, content, fileBase64, fileMimeType } = req.body;
 
-    if (!content || !type) {
-      return res.status(400).json({ error: "Missing type or content" });
+    if (!type) {
+      return res.status(400).json({ error: "Missing type" });
     }
 
-    // Trim long documents (token stability)
-    const trimmedContent = String(content).slice(0, 4000);
+    if (type !== "text" && type !== "image") {
+      return res.status(400).json({ error: "Only 'text' and 'image' supported" });
+    }
+
+    if (!content && !fileBase64) {
+      return res.status(400).json({ error: "No content provided" });
+    }
+
+    const trimmedContent = content
+      ? String(content).slice(0, 4000)
+      : "";
 
     let systemPrompt = "";
 
     // ===============================
-    // TEXT FORENSIC SYSTEM PROMPT
+    // TEXT FORENSIC PROMPT
     // ===============================
     if (type === "text") {
       systemPrompt = `
-You are a professional forensic text authenticity analyzer.
+You are an advanced forensic text authenticity analyzer.
 
-Perform a strict credibility assessment.
+Strictly evaluate:
 
-Carefully evaluate:
-
-1. Logical consistency and contradictions
-2. Emotional manipulation tactics
-3. Sensational or exaggerated wording
+1. Logical consistency
+2. Emotional manipulation
+3. Exaggerated or sensational language
 4. Unsupported claims
-5. Fabricated statistics
-6. Missing citations
-7. Authority misuse
+5. Fake statistics
+6. Source credibility
+7. Bias indicators
 8. Structural coherence
-9. Bias indicators
-10. Misinformation probability
 
-Be conservative and analytical.
-
-Return STRICT JSON only:
+Return STRICT JSON:
 
 {
   "score": number,
@@ -51,54 +56,73 @@ Return STRICT JSON only:
   ]
 }
 
-Rules:
-- 85–100 = Highly credible
-- 60–84 = Questionable
-- Below 60 = Likely misinformation
+Scoring:
+85–100 = Highly credible
+60–84 = Medium risk
+Below 60 = High misinformation risk
 
-Return only valid JSON. No explanation.
+Return only valid JSON.
 `;
     }
 
     // ===============================
-    // IMAGE FORENSIC SYSTEM PROMPT
+    // IMAGE FORENSIC PROMPT
     // ===============================
     if (type === "image") {
       systemPrompt = `
 You are an AI forensic image authenticity evaluator.
 
-Based on known deepfake and AI generation patterns,
-estimate authenticity risk carefully.
+Analyze the image carefully.
 
-Analyze:
+Evaluate:
 
 1. AI generation artifacts
-2. Facial symmetry inconsistencies
-3. Lighting and shadow mismatches
-4. Background blending anomalies
-5. Over-smoothing or unnatural textures
-6. Metadata plausibility
+2. Lighting consistency
+3. Facial symmetry (if applicable)
+4. Background blending
+5. Texture realism
+6. Visual inconsistencies
 
-Be analytical and conservative.
-
-Return STRICT JSON only:
+Return STRICT JSON:
 
 {
   "score": number,
   "risk": "Low" | "Medium" | "High",
   "breakdown": [
-    { "label": "AI Generation Artifacts", "value": number },
+    { "label": "AI Artifacts", "value": number },
     { "label": "Visual Consistency", "value": number },
-    { "label": "Metadata Plausibility", "value": number }
+    { "label": "Realism Indicators", "value": number }
   ]
 }
 
-Return only valid JSON. No explanation.
+Return only valid JSON.
 `;
     }
 
-    if (!systemPrompt) {
-      return res.status(400).json({ error: "Invalid type. Use 'text' or 'image'." });
+    let messages: any[] = [
+      { role: "system", content: systemPrompt }
+    ];
+
+    // IMAGE CASE (Vision Input)
+    if (type === "image" && fileBase64 && fileMimeType) {
+      messages.push({
+        role: "user",
+        content: [
+          { type: "text", text: "Analyze this image for authenticity risk." },
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:${fileMimeType};base64,${fileBase64}`
+            }
+          }
+        ]
+      });
+    } else {
+      // TEXT CASE
+      messages.push({
+        role: "user",
+        content: trimmedContent
+      });
     }
 
     const response = await fetch(
@@ -107,22 +131,19 @@ Return only valid JSON. No explanation.
         method: "POST",
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "meta-llama/llama-3-70b-instruct",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: trimmedContent }
-          ],
-          temperature: 0.1
-        }),
+          model: "openai/gpt-4o-mini",
+          messages,
+          temperature: 0.2
+        })
       }
     );
 
     const data = await response.json();
 
-    if (!data.choices || !data.choices[0]?.message?.content) {
+    if (!data.choices?.[0]?.message?.content) {
       return res.status(500).json({
         error: "No AI response",
         details: data
@@ -131,7 +152,7 @@ Return only valid JSON. No explanation.
 
     let raw = data.choices[0].message.content.trim();
 
-    // Remove markdown formatting
+    // Remove markdown formatting if present
     if (raw.startsWith("```")) {
       raw = raw.replace(/```json|```/g, "").trim();
     }
@@ -140,7 +161,7 @@ Return only valid JSON. No explanation.
 
     try {
       parsed = JSON.parse(raw);
-    } catch (err) {
+    } catch {
       return res.status(500).json({
         error: "Invalid JSON from model",
         raw
@@ -148,12 +169,14 @@ Return only valid JSON. No explanation.
     }
 
     // ===============================
-    // SCORE STABILIZATION (Backend Control)
+    // SCORE STABILIZATION
     // ===============================
     if (Array.isArray(parsed.breakdown)) {
       const avg =
-        parsed.breakdown.reduce((sum: number, b: any) => sum + Number(b.value || 0), 0) /
-        parsed.breakdown.length;
+        parsed.breakdown.reduce(
+          (sum: number, b: any) => sum + Number(b.value || 0),
+          0
+        ) / parsed.breakdown.length;
 
       parsed.score = Math.round(avg);
 
