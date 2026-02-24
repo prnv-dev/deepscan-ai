@@ -206,7 +206,7 @@ setResult(data);
                     </p>
                   </div>
                 ) : (
-                  <div className="glass-card rounded-2xl p-8 space-y-6">
+                  <div className="glass-card rounded-2xl p-8 space-y-6 animate-fade-up">
                     {/* Drop zone */}
                     <div
                       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
