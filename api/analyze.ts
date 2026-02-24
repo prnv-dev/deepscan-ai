@@ -1,48 +1,109 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { type, content, fileBase64, fileMimeType } = req.body;
+    const { type, content, fileBase64 } = req.body;
 
     if (!type) {
       return res.status(400).json({ error: "Missing type" });
     }
 
     if (type !== "text" && type !== "image") {
-      return res.status(400).json({ error: "Only 'text' and 'image' supported" });
+      return res
+        .status(400)
+        .json({ error: "Only 'text' and 'image' supported" });
     }
 
-    if (!content && !fileBase64) {
-      return res.status(400).json({ error: "No content provided" });
+    // ============================================================
+    // ====================== IMAGE CASE ===========================
+    // ============================================================
+    if (type === "image") {
+      if (!fileBase64) {
+        return res.status(400).json({ error: "Missing image data" });
+      }
+
+      const imageBuffer = Buffer.from(fileBase64, "base64");
+
+      const hfResponse = await fetch(
+        "https://api-inference.huggingface.co/models/dima806/deepfake_vs_real_image_detection",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+            "Content-Type": "application/octet-stream",
+          },
+          body: imageBuffer,
+        }
+      );
+
+      const hfData = await hfResponse.json();
+
+      if (!Array.isArray(hfData)) {
+        return res.status(500).json({
+          error: "HuggingFace error",
+          details: hfData,
+        });
+      }
+
+      const fakeResult = hfData.find((r: any) =>
+        r.label.toLowerCase().includes("fake")
+      );
+
+      const realResult = hfData.find((r: any) =>
+        r.label.toLowerCase().includes("real")
+      );
+
+      const fakeScore = fakeResult?.score ?? 0;
+      const realScore = realResult?.score ?? 0;
+
+      const authenticityScore = Math.round(realScore * 100);
+
+      let risk: "Low" | "Medium" | "High" = "Low";
+      if (authenticityScore < 60) risk = "High";
+      else if (authenticityScore < 80) risk = "Medium";
+
+      return res.status(200).json({
+        score: authenticityScore,
+        risk,
+        breakdown: [
+          {
+            label: "Deepfake Probability",
+            value: Math.round(fakeScore * 100),
+          },
+          {
+            label: "Real Probability",
+            value: Math.round(realScore * 100),
+          },
+        ],
+      });
     }
 
-    const trimmedContent = content
-      ? String(content).slice(0, 4000)
-      : "";
-
-    let systemPrompt = "";
-
-    // ===============================
-    // TEXT FORENSIC PROMPT
-    // ===============================
+    // ============================================================
+    // ====================== TEXT CASE ============================
+    // ============================================================
     if (type === "text") {
-      systemPrompt = `
+      if (!content) {
+        return res.status(400).json({ error: "Missing text content" });
+      }
+
+      const trimmedContent = String(content).slice(0, 4000);
+
+      const systemPrompt = `
 You are an advanced forensic text authenticity analyzer.
 
 Strictly evaluate:
-
 1. Logical consistency
 2. Emotional manipulation
-3. Exaggerated or sensational language
-4. Unsupported claims
-5. Fake statistics
-6. Source credibility
-7. Bias indicators
-8. Structural coherence
+3. Unsupported claims
+4. Fake statistics
+5. Bias indicators
 
 Return STRICT JSON:
 
@@ -56,141 +117,75 @@ Return STRICT JSON:
   ]
 }
 
-Scoring:
-85–100 = Highly credible
-60–84 = Medium risk
-Below 60 = High misinformation risk
-
 Return only valid JSON.
 `;
-    }
 
-    // ===============================
-    // IMAGE FORENSIC PROMPT
-    // ===============================
-    if (type === "image") {
-      systemPrompt = `
-You are an AI forensic image authenticity evaluator.
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-4o-mini",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: trimmedContent },
+            ],
+            temperature: 0.2,
+          }),
+        }
+      );
 
-Analyze the image carefully.
+      const data = await response.json();
 
-Evaluate:
-
-1. AI generation artifacts
-2. Lighting consistency
-3. Facial symmetry (if applicable)
-4. Background blending
-5. Texture realism
-6. Visual inconsistencies
-
-Return STRICT JSON:
-
-{
-  "score": number,
-  "risk": "Low" | "Medium" | "High",
-  "breakdown": [
-    { "label": "AI Artifacts", "value": number },
-    { "label": "Visual Consistency", "value": number },
-    { "label": "Realism Indicators", "value": number }
-  ]
-}
-
-Return only valid JSON.
-`;
-    }
-
-    let messages: any[] = [
-      { role: "system", content: systemPrompt }
-    ];
-
-    // IMAGE CASE (Vision Input)
-    if (type === "image" && fileBase64 && fileMimeType) {
-      messages.push({
-        role: "user",
-        content: [
-          { type: "text", text: "Analyze this image for authenticity risk." },
-          {
-            type: "image_url",
-            image_url: {
-              url: `data:${fileMimeType};base64,${fileBase64}`
-            }
-          }
-        ]
-      });
-    } else {
-      // TEXT CASE
-      messages.push({
-        role: "user",
-        content: trimmedContent
-      });
-    }
-
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-4o-mini",
-          messages,
-          temperature: 0.2
-        })
+      if (!data.choices?.[0]?.message?.content) {
+        return res.status(500).json({
+          error: "No AI response",
+          details: data,
+        });
       }
-    );
 
-    const data = await response.json();
+      let raw = data.choices[0].message.content.trim();
 
-    if (!data.choices?.[0]?.message?.content) {
-      return res.status(500).json({
-        error: "No AI response",
-        details: data
-      });
+      if (raw.startsWith("```")) {
+        raw = raw.replace(/```json|```/g, "").trim();
+      }
+
+      let parsed: any;
+
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        return res.status(500).json({
+          error: "Invalid JSON from model",
+          raw,
+        });
+      }
+
+      // Score stabilization
+      if (Array.isArray(parsed.breakdown)) {
+        const avg =
+          parsed.breakdown.reduce(
+            (sum: number, b: any) => sum + Number(b.value || 0),
+            0
+          ) / parsed.breakdown.length;
+
+        parsed.score = Math.round(avg);
+
+        if (avg >= 80) parsed.risk = "Low";
+        else if (avg >= 60) parsed.risk = "Medium";
+        else parsed.risk = "High";
+      }
+
+      return res.status(200).json(parsed);
     }
-
-    let raw = data.choices[0].message.content.trim();
-
-    // Remove markdown formatting if present
-    if (raw.startsWith("```")) {
-      raw = raw.replace(/```json|```/g, "").trim();
-    }
-
-    let parsed;
-
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      return res.status(500).json({
-        error: "Invalid JSON from model",
-        raw
-      });
-    }
-
-    // ===============================
-    // SCORE STABILIZATION
-    // ===============================
-    if (Array.isArray(parsed.breakdown)) {
-      const avg =
-        parsed.breakdown.reduce(
-          (sum: number, b: any) => sum + Number(b.value || 0),
-          0
-        ) / parsed.breakdown.length;
-
-      parsed.score = Math.round(avg);
-
-      if (avg >= 85) parsed.risk = "Low";
-      else if (avg >= 60) parsed.risk = "Medium";
-      else parsed.risk = "High";
-    }
-
-    return res.status(200).json(parsed);
-
   } catch (error: any) {
     return res.status(500).json({
       error: "Server error",
-      details: error.message
+      details: error.message,
     });
   }
 }
