@@ -274,7 +274,7 @@ setResult(data);
 
           {/* Results */}
           {result && (
-            <div className="mt-8 glass-card rounded-2xl p-8 animate-fade-up space-y-6">
+            <div className="mt-8 glass-card rounded-2xl p-8 space-y-6 animate-fade-up" key={result.score}>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-center sm:text-left">
                   <p className="text-sm text-muted-foreground mb-1">Authenticity Score</p>
