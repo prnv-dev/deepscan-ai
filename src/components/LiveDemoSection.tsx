@@ -176,8 +176,8 @@ setResult(data);
             {(Object.keys(tabConfig) as DemoTab[]).map((key) => (
               <TabsContent key={key} value={key}>
                 {key === "video" || key === "audio" ? (
-                  <div className="glass-card rounded-2xl p-12 text-center space-y-4">
-                    <Clock className="h-12 w-12 mx-auto text-primary/60" />
+                  <div className="glass-card rounded-2xl p-12 text-center space-y-4 animate-fade-up">
+                    <Clock className="h-12 w-12 mx-auto text-primary/60 animate-pulse" />
                     <h3 className="font-display text-2xl font-bold text-foreground">Coming Soon</h3>
                     <p className="text-muted-foreground max-w-md mx-auto">
                       This feature is under development. Stay tuned!
