@@ -31,6 +31,9 @@ export default async function handler(
 
       const imageBuffer = Buffer.from(fileBase64, "base64");
 
+const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 15000);
+
 const hfResponse = await fetch(
   "https://router.huggingface.co/hf-inference/models/dima806/deepfake_vs_real_image_detection",
   {
@@ -39,11 +42,14 @@ const hfResponse = await fetch(
       Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
       "Content-Type": "application/octet-stream"
     },
-    body: imageBuffer
+    body: imageBuffer,
+    signal: controller.signal
   }
 );
 
-if (!hfResponse.ok) {
+clearTimeout(timeout);
+
+if (!hfResponse .ok) {
   const errorText = await hfResponse.text();
   return res.status(500).json({
     error: "HuggingFace request failed",
@@ -147,6 +153,13 @@ Return only valid JSON.
         }
       );
 
+      if (!response.ok) {
+      const errText = await response.text();
+      return res.status(500).json({
+    error: "OpenRouter request failed",
+    details: errText,
+  });
+}
       const data = await response.json();
 
       if (!data.choices?.[0]?.message?.content) {

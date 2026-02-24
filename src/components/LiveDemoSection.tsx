@@ -16,8 +16,8 @@ type Result = {
 };
 
 const tabConfig: Record<DemoTab, { label: string; icon: typeof FileText; accept: string; placeholder: string; breakdownLabels: string[] }> = {
-  text: { label: "Text Analysis", icon: FileText, accept: ".txt,.doc,.pdf", placeholder: "Paste an article, URL, or any text to analyze…", breakdownLabels: ["Source Credibility", "Language Analysis", "Fact Consistency", "Cross-Reference"] },
-  image: { label: "Image Scanner", icon: Image, accept: "image/png,image/jpeg,image/jpg,image/webp", placeholder: "Describe the image source or paste a URL…", breakdownLabels: ["AI Generation Score", "Pixel Manipulation", "Metadata Integrity", "EXIF Analysis"] },
+  text: { label: "Text Analysis", icon: FileText, accept: ".txt,text/plain", placeholder: "Paste an article, URL, or any text to analyze…", breakdownLabels: ["Source Credibility", "Language Analysis", "Fact Consistency", "Cross-Reference"] },
+  image: { label: "Image Scanner", icon: Image, accept: "image/png,image/jpeg", placeholder: "Describe the image source or paste a URL…", breakdownLabels: ["AI Generation Score", "Pixel Manipulation", "Metadata Integrity", "EXIF Analysis"] },
   video: { label: "Video Checker", icon: Video, accept: "video/mp4,video/webm,video/mov,video/avi", placeholder: "Paste a video URL or describe the content…", breakdownLabels: ["Deepfake Probability", "Face Consistency", "Lip-Sync Analysis", "Temporal Coherence"] },
   audio: { label: "Audio Analyzer", icon: Mic, accept: "audio/mp3,audio/wav,audio/mpeg,audio/ogg,audio/webm", placeholder: "Paste an audio URL or describe the content…", breakdownLabels: ["Synthetic Voice Score", "Spectral Analysis", "Voice Cloning Detection", "Background Artifacts"] },
 };
@@ -90,16 +90,38 @@ const analyze = async () => {
     let fileBase64: string | undefined;
     let fileMimeType: string | undefined;
 
-    if (file) {
-      if (tab === "image" || tab === "video" || tab === "audio") {
-        const base64Full = await fileToBase64(file);
-        fileBase64 = base64Full.split(',')[1];
-        fileMimeType = file.type;
-        content = content || `Analyze this ${tab} file: ${file.name}`;
-      } else if (file.type.startsWith("text/")) {
-        content = await file.text();
-      }
+if (file) {
+  if (tab === "image") {
+    if (
+      file.type !== "image/png" &&
+      file.type !== "image/jpeg"
+    ) {
+      throw new Error("Only PNG and JPG supported");
     }
+
+    const base64Full = await fileToBase64(file);
+    fileBase64 = base64Full.split(",")[1];
+    fileMimeType = file.type;
+    content = `Analyze this image file: ${file.name}`;
+  }
+
+  else if (tab === "text") {
+    if (file.type !== "text/plain") {
+      throw new Error("Only .txt files supported");
+    }
+
+    content = await file.text();
+  }
+
+else {
+  setLoading(false);
+  toast({
+    title: "Coming Soon",
+    description: "This feature is under development.",
+  });
+  return;
+}
+}
 
 const response = await fetch("/api/analyze", {
   method: "POST",
