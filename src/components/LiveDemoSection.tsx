@@ -290,15 +290,28 @@ setResult(data);
               </div>
 
               <div className="space-y-4">
-                {result.breakdown.map((b) => (
-                  <div key={b.label}>
-                    <div className="flex justify-between text-sm mb-1.5">
-                      <span className="text-muted-foreground">{b.label}</span>
-                      <span className="font-medium text-foreground">{b.value}%</span>
+                {result.breakdown.map((b) => {
+                  const barColor =
+                    b.value <= 40
+                      ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
+                      : b.value <= 70
+                      ? "bg-gradient-to-r from-amber-400 to-amber-500"
+                      : "bg-gradient-to-r from-red-400 to-red-500";
+                  return (
+                    <div key={b.label}>
+                      <div className="flex justify-between text-sm mb-1.5">
+                        <span className="text-muted-foreground">{b.label}</span>
+                        <span className="font-medium text-foreground">{b.value}%</span>
+                      </div>
+                      <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+                        <div
+                          className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
+                          style={{ width: `${b.value}%` }}
+                        />
+                      </div>
                     </div>
-                    <Progress value={b.value} className="h-2 bg-secondary" />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
