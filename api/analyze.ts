@@ -31,19 +31,27 @@ export default async function handler(
 
       const imageBuffer = Buffer.from(fileBase64, "base64");
 
-      const hfResponse = await fetch(
-        "https://api-inference.huggingface.co/models/dima806/deepfake_vs_real_image_detection",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-            "Content-Type": "application/octet-stream",
-          },
-          body: imageBuffer,
-        }
-      );
+const hfResponse = await fetch(
+  "https://router.huggingface.co/hf-inference/models/dima806/deepfake_vs_real_image_detection",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+      "Content-Type": "application/octet-stream"
+    },
+    body: imageBuffer
+  }
+);
 
-      const hfData = await hfResponse.json();
+if (!hfResponse.ok) {
+  const errorText = await hfResponse.text();
+  return res.status(500).json({
+    error: "HuggingFace request failed",
+    details: errorText
+  });
+}
+
+const hfData = await hfResponse.json();
 
       if (!Array.isArray(hfData)) {
         return res.status(500).json({
